@@ -1,0 +1,219 @@
+/*
+ * Created by Andrew Tse,Patrick Caldwell, Josh Matthews
+ * CSUSM Local Hack a day 2018
+ */
+
+
+// include the library code:
+#include <LiquidCrystal.h>
+
+
+
+/*************************************************
+ * Public Constants
+ *************************************************/
+#define NOTE_B3  247
+#define NOTE_C4  262
+#define NOTE_CS4 277
+#define NOTE_D4  294
+#define NOTE_DS4 311
+#define NOTE_E4  330
+#define NOTE_F4  349
+#define NOTE_FS4 370
+#define NOTE_G4  392
+#define NOTE_GS4 415
+#define NOTE_A4  440
+#define NOTE_AS4 466
+#define NOTE_B4  494
+#define NOTE_C5  523
+#define NOTE_CS5 554
+#define NOTE_D5  587
+#define NOTE_DS5 622
+#define NOTE_E5  659
+#define NOTE_F5  698
+#define NOTE_FS5 740
+#define NOTE_G5  784
+#define NOTE_GS5 831
+#define NOTE_A5  880
+#define NOTE_AS5 932
+#define NOTE_B5  988
+
+#define NOTE_BLANK 0
+
+
+//the pin the speaker is attached to:
+int speakerPin = 8;
+
+
+//The notes in our melody and their duration in fractions of a second
+
+const int melody[][2] = 
+{
+
+  {NOTE_BLANK, 2},
+  {NOTE_A4, 8},
+  {NOTE_AS4, 8},
+  {NOTE_B4, 8},
+  {NOTE_C5, 1}
+};
+
+
+
+// constants won't change. They're used here to set pin numbers:
+const int buttonPin = 2;     // the number of the pushbutton pin Later will be the reed switch
+const int lightCircuit = 9;  //Power for the light circut
+
+// variables will change:
+int sensorPin = A0;    // select the input pin for the potentiometer
+int sensorValue = 0;  // variable to store the value coming from the sensor
+
+int brightness = 0;    // how bright the light circut will be
+int fadeAmount = 15;    // how many points to fade the light circuit by
+bool on = false;       //set the light module on
+int buttonState = 0;         // variable for reading the pushbutton status
+
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+int books_taken =0;
+
+
+
+
+
+
+
+
+
+
+
+void setup() {
+
+
+  //sets the light circuit as an output pin
+  pinMode( lightCircuit, OUTPUT);
+ 
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
+
+  //debugging
+  pinMode(LED_BUILTIN, OUTPUT);
+
+   //Serial.begin(9600);
+   // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+
+
+    //figure out the number of notes in our melody
+    int numberOfNotes = sizeof(melody) / sizeof(melody[0]);
+
+    //iterate over the notes of the melody
+    for(int thisNote = 0; thisNote < numberOfNotes; thisNote++)
+    {
+      //grab the note and note duration from our array
+      int thisNoteTone = melody[thisNote][0];
+      int thisNoteDuration = melody[thisNote][1];
+
+      //calculate note duration in ms
+      int noteDurationMS = 1000/thisNoteDuration;
+
+
+    delay(noteDurationMS*1.30);
+    }
+    // stop the tone playing:
+    noTone(8);
+  
+}
+
+void loop() {
+  // Turn off the display:
+ 
+  lcd.setCursor(0, 0);
+  lcd.print("Read a book!");
+  lcd.setCursor(0, 1);
+  lcd.print("Books Taken:");
+ lcd.setCursor(14, 1);
+ lcd.print(books_taken, DEC);
+ 
+
+// read the value from the photo resistor
+  sensorValue = analogRead(sensorPin);
+
+// read the value from the photo resistor
+  sensorValue = analogRead(sensorPin);
+
+
+  //clear the display 
+
+  // check if the pushbutton is pressed. If it is, the buttonState is HIGH and it is dark out.
+  if (sensorValue <=500) 
+  {
+        brightness =255;
+        // turn LED on:
+        analogWrite(lightCircuit, brightness);
+        on =true;//set the light circuit to on
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Take a");
+     lcd.setCursor(0, 1);
+      lcd.print("book!");
+
+            //play the note
+     play();
+     
+        
+  } 
+   else if(on )
+  {
+      //keeps dimming the light module until 0
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("GoodBye");
+      lcd.display();
+      books_taken++;
+      delay(1000);
+      while(brightness !=0)
+      {
+        
+          brightness = brightness - fadeAmount;
+          analogWrite(lightCircuit, brightness);
+          delay(30);
+      } 
+      on= false; //finally set the light circuit to off
+  }
+
+  // Turn on the display:
+  lcd.display();
+  delay(500);
+}
+
+
+
+void play()
+{
+
+      //figure out the number of notes in our melody
+    int numberOfNotes = sizeof(melody) / sizeof(melody[0]);
+
+    //iterate over the notes of the melody
+    for(int thisNote = 0; thisNote < numberOfNotes; thisNote++)
+    {
+      //grab the note and note duration from our array
+      int thisNoteTone = melody[thisNote][0];
+      int thisNoteDuration = melody[thisNote][1];
+
+      //calculate note duration in ms
+      int noteDurationMS = 1000/thisNoteDuration;
+
+      //play the note
+      tone(speakerPin, thisNoteTone, noteDurationMS);
+
+    delay(noteDurationMS*1.30);
+    }
+    // stop the tone playing:
+    noTone(8);
+  }
+  
